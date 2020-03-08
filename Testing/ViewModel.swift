@@ -26,7 +26,7 @@ import Hue
 
 class ViewModel {
 
-  let hexString = Variable<String>("")
+  let hexString = BehaviorRelay<String>(value: "")
   let color: Driver<UIColor>
   let rgb: Driver<(Int, Int, Int)>
   let colorName: Driver<String>
