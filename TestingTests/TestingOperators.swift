@@ -70,4 +70,34 @@ class TestingOperators : XCTestCase {
         XCTAssertEqual(results, ["1", "2", "3"])
 //        XCTAssertEqual(results, ["1", "2", "No you didn't"])
     }
+    
+    func testFilter() {
+        
+        let observer = scheduler.createObserver(Int.self)
+        
+        let observable = scheduler.createHotObservable([
+        
+            Recorded.next(100, 1),
+            Recorded.next(200, 2),
+            Recorded.next(300, 3),
+            Recorded.next(400, 2),
+            Recorded.next(500, 1)
+        ])
+        
+        let filterObservable = observable.filter {
+            $0 < 3
+        }
+        
+        scheduler.scheduleAt(0) {
+            self.subscription = filterObservable.subscribe(observer)
+        }
+        
+        scheduler.start()
+        
+        let results = observer.events.compactMap {
+            $0.value.element
+        }
+        
+        XCTAssertEqual(results, [1,2,2,1])
+    }
 }
