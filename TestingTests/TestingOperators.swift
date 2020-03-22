@@ -32,12 +32,42 @@ class TestingOperators : XCTestCase {
 
   override func setUp() {
     super.setUp()
-
+    scheduler = TestScheduler(initialClock: 0)
   }
 
   override func tearDown() {
-
-
+    scheduler.scheduleAt(1000) {
+        self.subscription.dispose()
+    }
     super.tearDown()
   }
+    
+    func testAmb() {
+        let observer = scheduler.createObserver(String.self)
+        
+        let observableA = scheduler.createHotObservable([
+            Recorded.next(100, "a"),
+            Recorded.next(200, "b"),
+            Recorded.next(300, "c")
+        ])
+        
+        let observableB = scheduler.createHotObservable([
+            Recorded.next(90, "1"),
+            Recorded.next(200, "2"),
+            Recorded.next(300, "3")
+        ])
+        
+        let ambObservable = observableA.amb(observableB)
+        
+        self.subscription = ambObservable.subscribe(observer)
+        
+        scheduler.start()
+        
+        let results = observer.events.compactMap {
+            $0.value.element
+        }
+        
+        XCTAssertEqual(results, ["1", "2", "3"])
+//        XCTAssertEqual(results, ["1", "2", "No you didn't"])
+    }
 }
